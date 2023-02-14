@@ -1,0 +1,13 @@
+sampleID	daylength	age
+NST1-4	long	nymph
+NST1-5	long	nymph
+NST1-7	long	nymph
+NST2-2	short	nymph
+NST2-3	short	nymph
+NST2-7	short	nymph
+ST1-3	long	adult
+ST1-4	long	adult
+ST1-7	long	adult
+ST2-5	short	adult
+ST2-6	short	adult
+ST2-7	short	adult

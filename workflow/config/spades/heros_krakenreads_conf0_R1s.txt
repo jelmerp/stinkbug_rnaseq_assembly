@@ -1,0 +1,7 @@
+results/subset/kraken/std-plus-fungi/conf0/699189_1111709_1410467_reads/ST2-7_R1_001.fastq.gz
+results/subset/kraken/std-plus-fungi/conf0/699189_1111709_1410467_reads/NST1-7_R1_001.fastq.gz
+results/subset/kraken/std-plus-fungi/conf0/699189_1111709_1410467_reads/NST2-7_R1_001.fastq.gz
+results/subset/kraken/std-plus-fungi/conf0/699189_1111709_1410467_reads/ST2-6_R1_001.fastq.gz
+results/subset/kraken/std-plus-fungi/conf0/699189_1111709_1410467_reads/ST1-7_R1_001.fastq.gz
+results/subset/kraken/std-plus-fungi/conf0/699189_1111709_1410467_reads/ST1-4_R1_001.fastq.gz
+results/subset/kraken/std-plus-fungi/conf0/699189_1111709_1410467_reads/ST1-3_R1_001.fastq.gz

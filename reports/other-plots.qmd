@@ -42,7 +42,8 @@ theme_update(panel.grid.minor = element_blank())
 
 # Define input files
 dds_file <- "/fs/ess/PAS0471/frederico/results/kallisto/taurulus/deseq_object.rds"
-DE_file <- "/fs/ess/PAS0471/frederico/results/DE/taurulus_dl.txt"
+#DE_file <- "/fs/ess/PAS0471/frederico/results/DE/taurulus_dl.txt"
+DE_file <- here("results/DE/DE_taurulus_adults.tsv")
 
 # Define output files
 outdir <- here("results/figures_final")
@@ -59,13 +60,7 @@ dds <- dds[, dds$age == "adult"]
 dds$Photoperiod <- ifelse(dds$daylength == "long", "25LD", "25SD")
 
 # Read and prep DE results
-DE <- read_tsv(DE_file, show_col_types = FALSE) |>
-  mutate(
-    isDE = ifelse(padj >= 0.05 | is.na(padj), FALSE, TRUE),
-    contrast = sub("_.*", "", contrast),
-  ) |>
-  dplyr::select(!c(lfcSE, stat, pvalue)) |> 
-  dplyr::rename(lfc = log2FoldChange)
+DE <- read_tsv(DE_file, show_col_types = FALSE)
 
 # Define focal genes
 focal_genes <- tibble(
@@ -76,6 +71,13 @@ focal_genes <- tibble(
 
 # Define colors
 daylen_colors <- c("darkorange", "deepskyblue4")
+```
+
+- Focal genes:
+
+```{r}
+# Check focal genes
+DE |> filter(gene %in% focal_genes$gene)
 ```
 
 ## PCA

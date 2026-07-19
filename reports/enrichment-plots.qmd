@@ -7,7 +7,7 @@ format:
   html:
     self-contained: true
     cache: false
-    code-fold: true
+    #code-fold: true
     number-sections: true
     number-depth: 2
     toc: true
@@ -21,9 +21,12 @@ knitr:
     message: FALSE
 execute: 
   warning: false
+  echo: false
 editor_options: 
   chunk_output_type: console
 ---
+
+<br>
 
 ```{r}
 # SET-UP -----------------------------------------------------------------------
@@ -54,8 +57,23 @@ KEGGplot_file <- file.path(outdir, "KEGG-plot.png")
 ```
 
 ```{r}
-# Read inputs ------
+# Define focal genes
+focal_genes <- tibble(
+  gene = c("NonamEVm003016", "NonamEVm004236", "NonamEVm005433"),
+  gene_name = c("FTZ-F1", "JHEH", "FPPS")
+) |>
+  mutate(gene = fct_inorder(gene), gene_name = fct_inorder(gene_name))
 
+# Function to get GO/KEGG terms that contain the focal genes
+get_gene <- function(focal_gene, enrich_df) {
+  enrich_df |>
+    filter(grepl(focal_gene, gene_ids)) |>
+    mutate(focal_gene = focal_gene) |>
+    relocate(focal_gene)
+}
+```
+```{r}
+# Read inputs ------
 # GO
 GO <- read_tsv(GO_file, show_col_types = FALSE) |>
   # Use "downregulated" instead of "down", etc, so the facet labels will be clearer:
@@ -78,6 +96,20 @@ KEGG <- read_tsv(KEGG_file, show_col_types = FALSE) |>
   )
 ```
 
+```{r}
+# Columns to keep in print tables
+table_cols <- c(
+  "DE_direction",
+  "term",
+  "description",
+  "padj",
+  "fold_enrich",
+  "n_focal_in_cat",
+  "n_cat",
+  "median_lfc"
+)
+```
+
 ## GO
 
 ### Number of significant terms
@@ -86,7 +118,15 @@ KEGG <- read_tsv(KEGG_file, show_col_types = FALSE) |>
 GO |> count(DE_direction)
 ```
 
-### Table
+### Enriched terms with focal genes
+
+```{r}
+GO_focal <- map_dfr(.x = focal_genes$gene, .f = get_gene, enrich_df = GO)
+
+GO_focal |> select(all_of(table_cols)) |> make_dt()
+```
+
+### Table with enriched terms
 
 - `fold_enrich`: Fold enrichment (overrepresentation) of the GO term among DE genes
 - `n_focal_in_cat`: Number of DE genes in the GO term
@@ -94,18 +134,7 @@ GO |> count(DE_direction)
 - `median_lfc`: Median Log2-fold change among DE genes in the GO term
 
 ```{r}
-GO |>
-  select(
-    DE_direction,
-    term,
-    description,
-    padj,
-    fold_enrich,
-    n_focal_in_cat,
-    n_cat,
-    median_lfc
-  ) |>
-  make_dt()
+GO |> select(all_of(table_cols)) |> make_dt()
 ```
 
 ### 15 most significant BP terms for each DE direction
@@ -208,10 +237,65 @@ GO_sel |>
 #ggsave(GOplot_file, width = 9, height = 7, dpi = 600)
 ```
 
+### Terms with focal genes
+```{r}
+GO_focal |>
+  cdotplot(
+    x_var = "fold_enrich",
+    fill_var = "padj_log",
+    label_var = "n_focal_in_cat",
+    facet_var1 = "ontology",
+    facet_var2 = "DE_direction",
+    add_term_id = FALSE,
+    label_chars = 60,
+    ylab_size = 10
+  ) +
+  scico::scale_color_scico(
+    palette = "batlow",
+    name = expression("-Log"[10] * " P")
+  )
+```
+
 ## KEGG
 
+### Number of significant terms
+
 ```{r}
-# Plot
+KEGG |> count(DE_direction)
+```
+
+### Enriched terms with focal genes
+
+None!
+
+```{r}
+map_dfr(.x = focal_genes$gene, .f = get_gene, enrich_df = KEGG)
+```
+
+### Table with enriched terms
+
+- `fold_enrich`: Fold enrichment (overrepresentation) of the GO term among DE genes
+- `n_focal_in_cat`: Number of DE genes in the GO term
+- `n_cat`: Number of genes in the GO term
+- `median_lfc`: Median Log2-fold change among DE genes in the GO term
+
+```{r}
+KEGG |>
+  select(
+    DE_direction,
+    term,
+    description,
+    padj,
+    fold_enrich,
+    n_focal_in_cat,
+    n_cat,
+    median_lfc
+  ) |>
+  make_dt()
+```
+
+### Plot
+```{r}
 KEGG |>
   arrange(DE_direction, fold_enrich) |>
   cdotplot(

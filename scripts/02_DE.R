@@ -29,11 +29,6 @@ dds <- DESeq(dds)
 # Extract the results
 DE <- extract_DE(dds, fct = "daylength", comp = c("long", "short"))
 
-#DE <- results(dds) %>%
-#  as.data.frame() %>%
-#  arrange(padj) %>%
-#  rownames_to_column("gene_id")
-
 
 # WRITE OUTPUTS ----------------------------------------------------------------
 write_tsv(DE, DE_file)

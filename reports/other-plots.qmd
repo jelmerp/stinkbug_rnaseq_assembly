@@ -1,0 +1,152 @@
+---
+title: "Final plots"
+author:
+  - "Jelmer Poelstra"
+date: today
+format:
+  html:
+    self-contained: true
+    cache: false
+    code-fold: false
+    number-sections: true
+    number-depth: 2
+    toc: true
+    fig-dpi: 300
+    df-print: paged
+    grid:
+      body-width: 800px
+knitr:
+  opts_chunk:
+    out.width: "100%"
+    message: FALSE
+execute: 
+  warning: false
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+# SET-UP -----------------------------------------------------------------------
+# Load packages
+library(DESeq2)
+library(tidyverse)
+library(patchwork)
+library(here)
+
+# Load script with functions
+source(here("mcic-scripts/rnaseq/rfuns/DE_funs.R"))
+
+# Settings
+theme_set(theme_bw(base_size = 13))
+theme_update(panel.grid.minor = element_blank())
+
+# Define input files
+dds_file <- "/fs/ess/PAS0471/frederico/results/kallisto/taurulus/deseq_object.rds"
+DE_file <- "/fs/ess/PAS0471/frederico/results/DE/taurulus_dl.txt"
+
+# Define output files
+outdir <- here("results/figures_final")
+dir.create(outdir, recursive = TRUE, showWarnings = FALSE)
+pca_file <- file.path(outdir, "PCA.png")
+geneplot_file <- file.path(outdir, "gene-plot.png")
+```
+
+```{r}
+# READ INPUT DATA --------------------------------------------------------------
+# Read and prep DESeq object
+dds <- readRDS(dds_file)
+dds <- dds[, dds$age == "adult"]
+dds$Photoperiod <- ifelse(dds$daylength == "long", "25LD", "25SD")
+
+# Read and prep DE results
+DE <- read_tsv(DE_file, show_col_types = FALSE) |>
+  mutate(
+    isDE = ifelse(padj >= 0.05 | is.na(padj), FALSE, TRUE),
+    contrast = sub("_.*", "", contrast),
+  ) |>
+  dplyr::select(!c(lfcSE, stat, pvalue)) |> 
+  dplyr::rename(lfc = log2FoldChange)
+
+# Define focal genes
+focal_genes <- tibble(
+  gene = c("NonamEVm003016", "NonamEVm004236", "NonamEVm005433"),
+  gene_name = c("FTZ-F1", "JHEH", "FPPS")
+  ) |>
+  mutate(gene = fct_inorder(gene), gene_name = fct_inorder(gene_name))
+
+# Define colors
+daylen_colors <- c("darkorange", "deepskyblue4")
+```
+
+## PCA
+
+```{r}
+pca_res <- pca_prcomp(dds)
+pca_df <- tibble(pca_res$df)
+  
+percent_var <- pca_res$percent_var
+x_lab <- paste0("PC1 (", percent_var[1], "%)")
+y_lab <- paste0("PC2 (", percent_var[2], "%)")
+
+ggplot(pca_df) +
+  aes(x = PC1, y = PC2, fill = Photoperiod) +
+  geom_point(shape = 21, size = 5, color = "grey20", stroke = 1) +
+  labs(x = x_lab, y = y_lab) +
+  coord_fixed(ratio = 1) +
+  scale_fill_manual(values = daylen_colors) +
+  scale_y_continuous(expand = expansion(mult = c(0.1, 0.1))) +
+  theme(
+    legend.position = "top",
+    panel.grid.major = element_blank()
+  )
+
+asp <- diff(range(pca_df$PC2)) / diff(range(pca_df$PC1))
+ggsave(pca_file, width = 8 + 1, height = (8 * asp) + 1, dpi = "retina")
+```
+
+## Single-gene plots with heatmap
+
+```{r}
+# --- Single-gene plots
+norm_df <- norm_counts(dds)
+norm_sel <- left_join(focal_genes, norm_df, by = "gene")
+
+p_genes <- ggplot(norm_sel) +
+  aes(x = Photoperiod, y = count, fill = Photoperiod) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_point(shape = 21) +
+  facet_wrap(vars(gene_name)) +
+  scale_fill_manual(values = daylen_colors) +
+  labs(y = "Normalized count") +
+  guides(fill = "none") +
+  theme(panel.grid.major.x = element_blank())
+
+p_genes
+
+# --- Heatmap
+heatmap_genes <- DE |> arrange(padj) |> head(100) |> pull(gene_id)
+norm_mat <- norm_counts(dds, return_matrix = TRUE)
+meta <- as.data.frame(colData(dds)) |> filter(age == "adult")
+
+anno_colors <- list(
+  Photoperiod = c(`25LD` = daylen_colors[1], `25SD` = daylen_colors[2])
+)
+
+p_heat <- pheat(
+  genes = heatmap_genes,
+  count_mat = norm_mat,
+  meta_df = meta,
+  groups = c("Photoperiod"),
+  logtrans = FALSE,
+  show_rownames = FALSE,
+  annotation_colors = anno_colors,
+  silent = TRUE
+  )
+
+p_heat
+
+p_genes / wrap_elements(p_heat$gtable) +
+  plot_annotation(tag_levels = "A")
+
+ggsave(geneplot_file, width = 7, height = 8, dpi = 600)
+```

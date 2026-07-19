@@ -1,0 +1,237 @@
+---
+title: "Enrichment plots"
+author:
+  - "Jelmer Poelstra"
+date: today
+format:
+  html:
+    self-contained: true
+    cache: false
+    code-fold: true
+    number-sections: true
+    number-depth: 2
+    toc: true
+    fig-dpi: 300
+    df-print: paged
+    grid:
+      body-width: 800px
+knitr:
+  opts_chunk:
+    out.width: "100%"
+    message: FALSE
+execute: 
+  warning: false
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+# SET-UP -----------------------------------------------------------------------
+# Load packages
+library(DESeq2)
+library(tidyverse)
+library(patchwork)
+library(here)
+
+# Load script with functions
+source(here("mcic-scripts/rnaseq/rfuns/DE_funs.R"))
+source(here("mcic-scripts/rnaseq/rfuns/enrich_funs.R"))
+source(here("mcic-scripts/misc/qmd_funs.R"))
+
+# Settings
+theme_set(theme_bw(base_size = 13))
+theme_update(panel.grid.minor = element_blank())
+
+# Define input files
+GO_file <- here("results/GO/GO_res.tsv")
+KEGG_file <- here("results/KEGG/KEGG_res.tsv")
+
+# Define output files
+outdir <- here("results/figs-ms")
+dir.create(outdir, recursive = TRUE, showWarnings = FALSE)
+GOplot_file <- file.path(outdir, "GO-plot.png")
+KEGGplot_file <- file.path(outdir, "KEGG-plot.png")
+```
+
+```{r}
+# Read inputs ------
+
+# GO
+GO <- read_tsv(GO_file, show_col_types = FALSE) |>
+  # Use "downregulated" instead of "down", etc, so the facet labels will be clearer:
+  mutate(
+    DE_direction = ifelse(
+      DE_direction == "down",
+      "downregulated",
+      "upregulated"
+    )
+  )
+
+# KEGG
+KEGG <- read_tsv(KEGG_file, show_col_types = FALSE) |>
+  mutate(
+    DE_direction = ifelse(
+      DE_direction == "down",
+      "downregulated",
+      "upregulated"
+    )
+  )
+```
+
+## GO
+
+### Number of significant terms
+
+```{r}
+GO |> count(DE_direction)
+```
+
+### Table
+
+- `fold_enrich`: Fold enrichment (overrepresentation) of the GO term among DE genes
+- `n_focal_in_cat`: Number of DE genes in the GO term
+- `n_cat`: Number of genes in the GO term
+- `median_lfc`: Median Log2-fold change among DE genes in the GO term
+
+```{r}
+GO |>
+  select(
+    DE_direction,
+    term,
+    description,
+    padj,
+    fold_enrich,
+    n_focal_in_cat,
+    n_cat,
+    median_lfc
+  ) |>
+  make_dt()
+```
+
+### 15 most significant BP terms for each DE direction
+
+```{r, fig.height=8}
+# Subset GO terms
+GO_sel <- GO |>
+  # Only take Biological Process in this example:
+  filter(ontology == "BP") |>
+  # Only take the 15 most significant terms for each DE direction
+  slice_min(padj, n = 15, with_ties = FALSE, by = "DE_direction") |>
+  # Sorting here will be respected in the plot - sort by fold enrichment, the axis variable:
+  arrange(fold_enrich)
+
+# Plot
+GO_sel |>
+  cdotplot(
+    x_var = "fold_enrich",
+    fill_var = "padj_log",
+    label_var = "n_focal_in_cat",
+    facet_var1 = "DE_direction",
+    facet_to_columns = FALSE,
+    add_term_id = FALSE,
+    label_chars = 60,
+    ylab_size = 10
+  ) +
+  scico::scale_color_scico(
+    palette = "batlow",
+    name = expression("-Log"[10] * " P")
+  )
+
+#ggsave(GOplot_file, width = 9, height = 7, dpi = 600)
+```
+
+### 15 smallest (most specific) BP terms for each DE direction
+
+```{r, fig.height=8}
+# Subset GO terms
+GO_sel <- GO |>
+  # Only take Biological Process in this example:
+  filter(ontology == "BP") |>
+  # Only take the 15 'smallest terms' (containing fewest genes => more specific) per DE direction:
+  slice_min(n_cat, n = 15, with_ties = FALSE, by = "DE_direction") |>
+  # Sorting here will be respected in the plot - sort by fold enrichment, the axis variable:
+  arrange(fold_enrich)
+
+# Plot
+GO_sel |>
+  cdotplot(
+    x_var = "fold_enrich",
+    fill_var = "padj_log",
+    label_var = "n_focal_in_cat",
+    facet_var1 = "DE_direction",
+    facet_to_columns = FALSE,
+    add_term_id = FALSE,
+    label_chars = 60,
+    ylab_size = 10
+  ) +
+  scico::scale_color_scico(
+    palette = "batlow",
+    name = expression("-Log"[10] * " P")
+  )
+
+#ggsave(GOplot_file, width = 9, height = 7, dpi = 600)
+```
+
+### 5 most significant terms for each DE direction and each ontology
+
+```{r, fig.height=8}
+# Subset GO terms
+GO_sel <- GO |>
+  # Only take Biological Process in this example:
+  # Only take the 15 most significant terms for each DE direction
+  slice_min(
+    padj,
+    n = 5,
+    with_ties = FALSE,
+    by = c("DE_direction", "ontology")
+  ) |>
+  # Sorting here will be respected in the plot - sort by fold enrichment, the axis variable:
+  arrange(DE_direction, fold_enrich)
+
+# Plot
+GO_sel |>
+  cdotplot(
+    x_var = "fold_enrich",
+    fill_var = "padj_log",
+    label_var = "n_focal_in_cat",
+    facet_var1 = "ontology",
+    facet_var2 = "DE_direction",
+    add_term_id = FALSE,
+    label_chars = 60,
+    ylab_size = 10
+  ) +
+  scico::scale_color_scico(
+    palette = "batlow",
+    name = expression("-Log"[10] * " P")
+  )
+
+#ggsave(GOplot_file, width = 9, height = 7, dpi = 600)
+```
+
+## KEGG
+
+```{r}
+# Plot
+KEGG |>
+  arrange(DE_direction, fold_enrich) |>
+  cdotplot(
+    x_var = "fold_enrich",
+    fill_var = "padj_log",
+    label_var = "n_focal_in_cat",
+    facet_var1 = "DE_direction",
+    facet_to_columns = FALSE,
+    add_term_id = FALSE,
+    label_chars = 60,
+    ylab_size = 10
+  ) +
+  scico::scale_color_scico(
+    palette = "batlow",
+    name = expression("-Log"[10] * " P")
+  )
+```
+
+## Session info
+
+```{r}
+sessionInfo()
+```

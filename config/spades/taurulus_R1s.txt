@@ -1,0 +1,4 @@
+results//subset/map2virus/bam2fq/ATT1-3_Aligned.sortedByCoord.out_R1.fastq.gz
+results//subset/map2virus/bam2fq/ATT1-2_Aligned.sortedByCoord.out_R1.fastq.gz
+results//subset/map2virus/bam2fq/NTT2-2_Aligned.sortedByCoord.out_R1.fastq.gz
+results//subset/map2virus/bam2fq/ATT1-5_Aligned.sortedByCoord.out_R1.fastq.gz

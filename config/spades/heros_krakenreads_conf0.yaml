@@ -1,0 +1,24 @@
+[
+   {
+     orientation: "fr",
+     type: "paired-end",
+     right reads: [
+       "/fs/project/PAS0471/jelmer/assist/2022-02_fred/results/subset/kraken/std-plus-fungi/conf0/699189_1111709_1410467_reads/ST2-7_R2_001.fastq.gz",
+"/fs/project/PAS0471/jelmer/assist/2022-02_fred/results/subset/kraken/std-plus-fungi/conf0/699189_1111709_1410467_reads/NST1-7_R2_001.fastq.gz",
+"/fs/project/PAS0471/jelmer/assist/2022-02_fred/results/subset/kraken/std-plus-fungi/conf0/699189_1111709_1410467_reads/NST2-7_R2_001.fastq.gz",
+"/fs/project/PAS0471/jelmer/assist/2022-02_fred/results/subset/kraken/std-plus-fungi/conf0/699189_1111709_1410467_reads/ST2-6_R2_001.fastq.gz",
+"/fs/project/PAS0471/jelmer/assist/2022-02_fred/results/subset/kraken/std-plus-fungi/conf0/699189_1111709_1410467_reads/ST1-7_R2_001.fastq.gz",
+"/fs/project/PAS0471/jelmer/assist/2022-02_fred/results/subset/kraken/std-plus-fungi/conf0/699189_1111709_1410467_reads/ST1-4_R2_001.fastq.gz",
+"/fs/project/PAS0471/jelmer/assist/2022-02_fred/results/subset/kraken/std-plus-fungi/conf0/699189_1111709_1410467_reads/ST1-3_R2_001.fastq.gz",
+     ],
+     left reads: [
+       "/fs/project/PAS0471/jelmer/assist/2022-02_fred/results/subset/kraken/std-plus-fungi/conf0/699189_1111709_1410467_reads/ST2-7_R1_001.fastq.gz",
+"/fs/project/PAS0471/jelmer/assist/2022-02_fred/results/subset/kraken/std-plus-fungi/conf0/699189_1111709_1410467_reads/NST1-7_R1_001.fastq.gz",
+"/fs/project/PAS0471/jelmer/assist/2022-02_fred/results/subset/kraken/std-plus-fungi/conf0/699189_1111709_1410467_reads/NST2-7_R1_001.fastq.gz",
+"/fs/project/PAS0471/jelmer/assist/2022-02_fred/results/subset/kraken/std-plus-fungi/conf0/699189_1111709_1410467_reads/ST2-6_R1_001.fastq.gz",
+"/fs/project/PAS0471/jelmer/assist/2022-02_fred/results/subset/kraken/std-plus-fungi/conf0/699189_1111709_1410467_reads/ST1-7_R1_001.fastq.gz",
+"/fs/project/PAS0471/jelmer/assist/2022-02_fred/results/subset/kraken/std-plus-fungi/conf0/699189_1111709_1410467_reads/ST1-4_R1_001.fastq.gz",
+"/fs/project/PAS0471/jelmer/assist/2022-02_fred/results/subset/kraken/std-plus-fungi/conf0/699189_1111709_1410467_reads/ST1-3_R1_001.fastq.gz",
+     ]
+   },
+]

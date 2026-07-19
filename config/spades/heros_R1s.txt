@@ -1,0 +1,6 @@
+results//subset/map2virus/bam2fq/ST1-4_Aligned.sortedByCoord.out_R1.fastq.gz
+results//subset/map2virus/bam2fq/ST2-6_Aligned.sortedByCoord.out_R1.fastq.gz
+results//subset/map2virus/bam2fq/ST2-7_Aligned.sortedByCoord.out_R1.fastq.gz
+results//subset/map2virus/bam2fq/NST2-7_Aligned.sortedByCoord.out_R1.fastq.gz
+results//subset/map2virus/bam2fq/ST1-3_Aligned.sortedByCoord.out_R1.fastq.gz
+results//subset/map2virus/bam2fq/ST1-7_Aligned.sortedByCoord.out_R1.fastq.gz
